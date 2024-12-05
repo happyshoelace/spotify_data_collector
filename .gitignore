@@ -1,0 +1,6 @@
+#clientsecret.py  <--- Make sure you don't share your actual info!
+credentials.json
+token.json
+time.txt
+.cache
+/__pycache__

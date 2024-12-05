@@ -1,61 +1,60 @@
 import pandas as pd
-import re
-from datetime import datetime
+import time
 from collections import Counter
+from urltool import convert_google_sheet_url
+from datetime import datetime
+import time
 
-WRAP = "" # Insert Google Sheet link between quotes
 
-current_datetime = datetime.now()
-current_month = current_datetime.strftime("%B") # Automatically computes current month if you want to do it monthly
-current_month = "2024"
+def date_to_unix_timestamp_millis(day=None, month=None, year=None):
+    # Get the current date
+    now = datetime.now()
+    
+    # Use current day, month, and year if not provided
+    day = day if day is not None else now.day
+    month = month if month is not None else now.month
+    year = year if year is not None else now.year
+    
+    # Create a datetime object with the provided or current date
+    date = datetime(year, month, day)
+    
+    # Convert the datetime object to a Unix timestamp in milliseconds
+    unix_timestamp_millis = int(time.mktime(date.timetuple()) * 1000)
+    
+    return unix_timestamp_millis
 
-google_sheets_link = WRAP
 
-def convert_google_sheet_url(url):
-    # Regular expression to match and capture the necessary part of the URL
-    pattern = r'https://docs\.google\.com/spreadsheets/d/([a-zA-Z0-9-_]+)(/edit#gid=(\d+)|/edit.*)?'
-
-    # Replace function to construct the new URL for CSV export
-    # If gid is present in the URL, it includes it in the export URL, otherwise, it's omitted
-    replacement = lambda m: f'https://docs.google.com/spreadsheets/d/{m.group(1)}/export?' + (f'gid={m.group(3)}&' if m.group(3) else '') + 'format=csv'
-
-    # Replace using regex
-    new_url = re.sub(pattern, replacement, url)
-
-    return new_url
-
-pandas_url = convert_google_sheet_url(google_sheets_link)
+pandas_url = convert_google_sheet_url()[0]
 
 df = pd.read_csv(pandas_url)
 
-counts = Counter(df.artist)
+counts = Counter(df.Artist)
+intdates = [[1,1],[1,2],[1,3],[1,4],[1,5],[1,6],[1,7],[1,8],[1,9],[1,10],[1,11],[1,12]]
+unixdates = [date_to_unix_timestamp_millis(dates[0], dates[1]) for dates in intdates]
+unixdates.append(date_to_unix_timestamp_millis(1,1,2025))
 
-print("\n")
-if df.date.str.contains(f'{current_month}').any():
-    wrapped = (df[df.date.str.contains(f'{current_month}')])
-    print(f"JANUARY SONG NUMBER: {len(df[df.date.str.contains('January')])} (ROUGHLY {3*len(df[df.date.str.contains('January')]) / 60} HOURS)")
-    print(f"FEBRUARY SONG NUMBER: {len(df[df.date.str.contains('February')])} (ROUGHLY {3*len(df[df.date.str.contains('February')]) / 60} HOURS)")
-    print(f"MARCH SONG NUMBER: {len(df[df.date.str.contains('March')])} (ROUGHLY {3*len(df[df.date.str.contains('March')]) / 60} HOURS)")
-    print(f"APRIL SONG NUMBER: {len(df[df.date.str.contains('April')])} (ROUGHLY {3*len(df[df.date.str.contains('April')]) / 60} HOURS)")
-    print(f"MAY SONG NUMBER: {len(df[df.date.str.contains('May')])} (ROUGHLY {3*len(df[df.date.str.contains('May')]) / 60} HOURS)")
-    print(f"JUNE SONG NUMBER: {len(df[df.date.str.contains('June')])} (ROUGHLY {3*len(df[df.date.str.contains('June')]) / 60} HOURS)")
-    print(f"JULY SONG NUMBER: {len(df[df.date.str.contains('July')])} (ROUGHLY {3*len(df[df.date.str.contains('July')]) / 60} HOURS)")
-    print(f"AUGUST SONG NUMBER: {len(df[df.date.str.contains('August')])} (ROUGHLY {3*len(df[df.date.str.contains('August')]) / 60} HOURS)")
-    print(f"SEPTEMBER SONG NUMBER: {len(df[df.date.str.contains('September')])} (ROUGHLY {3*len(df[df.date.str.contains('September')]) / 60} HOURS)")
-    print(f"OCTOBER SONG NUMBER: {len(df[df.date.str.contains('October')])} (ROUGHLY {3*len(df[df.date.str.contains('October')]) / 60} HOURS)")
-    print(f"NOVEMBER SONG NUMBER: {len(df[df.date.str.contains('November')])} (ROUGHLY {3*len(df[df.date.str.contains('November')]) / 60} HOURS)")
+strMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 print("\n")
 
-counts_1 = Counter(wrapped.artist)
-counts_2 = Counter(wrapped.song)
+
+for x, month in enumerate(strMonths):
+    print(f"{month.upper()} SONG NUMBER: {len(df[df.Date.between(unixdates[x], unixdates[x+1])])} (ROUGHLY {3*len(df[df.Date.between(unixdates[x], unixdates[x+1])]) / 60} HOURS)")
+
+
+print("\n")
+
+counts_1 = Counter(df.Artist[df.Date.between(unixdates[0], unixdates[-1])])
+counts_2 = Counter(df.Track[df.Date.between(unixdates[0], unixdates[-1])])
+
+
 
 most_popular_artist = dict()
 most_popular_song = dict()
 
 print(f"I LISTENED TO {len(counts_1.items())} DIFFERENT ARTISTS IN 2024\n")
 
-print(f"I LISTENED TO {len(wrapped)} SONGS IN 2024 (ROUGHLY {3*len(wrapped)} MINUTES OR {3*len(wrapped) / 60} HOURS OR {3*len(wrapped) / 60 / 60} DAYS) \n")
+print(f"I LISTENED TO {len(df[df.Date.between(unixdates[0], unixdates[-1])])} SONGS IN 2024 (ROUGHLY {3*len(df[df.Date.between(unixdates[0], unixdates[-1])])} MINUTES OR {3*len(df[df.Date.between(unixdates[0], unixdates[-1])])/ 60} HOURS OR {round(3*len(df[df.Date.between(unixdates[0], unixdates[-1])]) / 60 / 60,2)} DAYS) \n")
 
 print(f"I LISTENED TO {len(counts_2.items())} DIFFERENT SONGS IN 2024\n")
 
@@ -122,7 +121,7 @@ print(f"I LISTENED TO {len(keys_list_song)} SONGS ONLY ONE TIME IN 2024")
 print("\n")
 
 
-artist_counts = Counter(wrapped['artist'])
+artist_counts = Counter(df.Artist[df.Date.between(unixdates[0], unixdates[-1])])
 count_taylor_swift = artist_counts["Taylor Swift"] # Can change "Taylor Swift" to any artist
 print(f"TAYLOR SWIFT COUNT: {count_taylor_swift}")
 print("\n")
