@@ -36,7 +36,7 @@ def main():
 
   try:
     service = build("sheets", "v4", credentials=creds)
-    SPREADSHEET_ID = convert_google_sheet_url[1]
+    SPREADSHEET_ID = convert_google_sheet_url()[1]
     values = getRecentTracks()
     print(values)
     body = {"values": values}

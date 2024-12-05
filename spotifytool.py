@@ -18,7 +18,7 @@ def getRecentTracks():
     newScrobbles = []
 
     results = sp.current_user_recently_played(after=after_timestamp)
-    for item in enumerate(results['items']):
+    for item in results['items']:
         track = item['track']
         played_at_str = item['played_at']
         played_at_struct = time.strptime(played_at_str.split('.')[0], "%Y-%m-%dT%H:%M:%S")
