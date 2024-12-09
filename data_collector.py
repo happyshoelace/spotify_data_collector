@@ -6,14 +6,17 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from spotifytool import getRecentTracks
 from urltool import convert_google_sheet_url
+import schedule
+import time
 
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 
 def main():
-  """Shows basic usage of the Sheets API.
-  Prints values from a sample spreadsheet.
+  """
+  Scrobbler program that takes most recently played tracks
+  and exports them to a google sheet
   """
   creds = None
   # The file token.json stores the user's access and refresh tokens, and is
@@ -31,14 +34,13 @@ def main():
       )
       creds = flow.run_local_server(port=0)
     # Save the credentials for the next run
-    with open("token.json", "w") as token:
+    with open("../token.json", "w") as token:
       token.write(creds.to_json())
 
   try:
     service = build("sheets", "v4", credentials=creds)
     SPREADSHEET_ID = convert_google_sheet_url()[1]
     values = getRecentTracks()
-    print(values)
     body = {"values": values}
     result = (
         service.spreadsheets()
@@ -59,5 +61,8 @@ def main():
     return error
 
 
-if __name__ == "__main__":
-  main()
+schedule.every().hour.do(main())
+
+while True:
+    schedule.run_pending()
+    time.sleep(1)

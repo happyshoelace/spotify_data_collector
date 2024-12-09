@@ -21,6 +21,7 @@ If you already have a history of scrobbles from LastFM, this program is compatib
 
 # Note
 The collection will only append to the first sheet, but the wrapped portion works for any sheet. 
+*Experimental Hourly AutoScrobbler:* This branch includes the schedule library, which I am trying to use in tandem with pm2 from node.js to run this program every hour. Feel free to test it out! Make sure you do `npm install pm2` first and then `pm2 start data_collector.py` to launch the app using pm2!
 
 # Thanks
 Repo was forked from [Liz Stippell](https://github.com/liz-stippell), but altered a lot because I didn't want to use IFTTTT and had pre-existing data from LastFM.
