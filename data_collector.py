@@ -8,6 +8,8 @@ from spotifytool import getRecentTracks
 from urltool import convert_google_sheet_url
 import schedule
 import time
+import datetime
+import logging
 
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -18,6 +20,7 @@ def main():
   Scrobbler program that takes most recently played tracks
   and exports them to a google sheet
   """
+  logging.debug("Attempting to run!")
   creds = None
   # The file token.json stores the user's access and refresh tokens, and is
   # created automatically when the authorization flow completes for the first
@@ -34,7 +37,7 @@ def main():
       )
       creds = flow.run_local_server(port=0)
     # Save the credentials for the next run
-    with open("../token.json", "w") as token:
+    with open("token.json", "w") as token:
       token.write(creds.to_json())
 
   try:
@@ -53,15 +56,27 @@ def main():
         )
         .execute()
     )
-    print(f"{(result.get('updates').get('updatedCells'))} cells appended.")
+    logging.info(f"{(result.get('updates').get('updatedCells'))} cells appended.")
     return result
 
   except HttpError as error:
-    print(f"An error occurred: {error}")
+    logging.error(f"An error occurred: {error}")
     return error
 
 
-schedule.every().hour.do(main())
+logging.basicConfig(
+    level=logging.INFO,  
+    format="%(asctime)s - %(levelname)s - %(message)s", 
+    handlers=[
+        logging.FileHandler("app.log"),  
+        logging.StreamHandler()          
+    ]
+)
+
+main() # Force Start on App Restart
+
+schedule.every().hour.do(main)
+
 
 while True:
     schedule.run_pending()
